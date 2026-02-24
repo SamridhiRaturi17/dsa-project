@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatDSA — Intelligent Chat Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:        #010d1a;
+  --bg1:       #021020;
+  --bg2:       #031628;
+  --bg3:       #041e35;
+  --card:      #061524;
+  --card2:     #0a1e30;
+  --border:    rgba(56,189,248,0.1);
+  --border2:   rgba(56,189,248,0.2);
+  --green:     #38bdf8;
+  --cyan:      #06b6d4;
+  --orange:    #0ea5e9;
+  --pink:      #67e8f9;
+  --yellow:    #7dd3fc;
+  --purple:    #93c5fd;
+  --red:       #f87171;
+  --text:      #e0f2fe;
+  --muted:     #4d8aab;
+  --muted2:    #1e4d6b;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BG ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(6,182,212,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(56,189,248,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 60% 30%, rgba(14,165,233,0.05) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAVBAR ── */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(5,7,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--green), var(--cyan));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.logo span { color: var(--green); }
+
+.nav-pills {
+  display: flex;
+  gap: 6px;
+  background: var(--bg2);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.nav-pill {
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+}
+
+.nav-pill.active {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.version-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(0,245,160,0.1);
+  color: var(--green);
+  border: 1px solid rgba(0,245,160,0.2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 40px 40px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(56,189,248,0.08);
+  border: 1px solid rgba(56,189,248,0.25);
+  color: var(--green);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.hero-badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px #38bdf8;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero h1 .accent {
+  background: linear-gradient(135deg, var(--green), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 500px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* ── DSA TAGS ── */
+.dsa-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 48px;
+}
+
+.dsa-tag {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.3px;
+}
+
+/* ── MAIN LAYOUT ── */
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px 60px;
+}
+
+/* ── INPUT SECTION ── */
+.input-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.input-header {
+  background: var(--card2);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.input-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.input-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.input-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.header-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.input-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.counter-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.btn {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-ghost {
+  background: var(--bg2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+.btn-primary {
+  background: linear-gradient(135deg, #38bdf8, #0284c7);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(56,189,248,0.3);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(56,189,248,0.5);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-danger {
+  background: var(--bg2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-danger:hover { border-color: var(--red); color: var(--red); }
+
+.input-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+}
+
+.textarea-wrap {
+  border-right: 1px solid var(--border);
+}
+
+textarea {
+  width: 100%;
+  min-height: 220px;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 20px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.8;
+  resize: vertical;
+}
+
+textarea::placeholder {
+  color: var(--muted2);
+  line-height: 2;
+}
+
+/* FORMAT GUIDE */
+.format-guide {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guide-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.guide-format {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  line-height: 2;
+}
+
+.guide-example {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.guide-example span { color: var(--text); }
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.feature-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── RESULTS ── */
+#resultsSection {
+  display: none;
+  animation: fadeUp 0.5s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+
+.stat-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--c, var(--green));
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--c, var(--green));
+  opacity: 0.04;
+}
+
+.stat-emoji { font-size: 20px; margin-bottom: 10px; }
+.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+.stat-value { font-size: 1.8rem; font-weight: 800; color: var(--c, var(--green)); line-height: 1; letter-spacing: -1px; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* TWO COL */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* PANEL */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-tag {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.panel-body { padding: 20px; }
+
+/* WORD BARS */
+.word-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.word-bar-row:last-child { margin-bottom: 0; }
+
+.word-rank {
+  font-size: 10px;
+  color: var(--muted2);
+  width: 16px;
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
+}
+
+.word-name {
+  font-size: 13px;
+  font-weight: 600;
+  width: 90px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.word-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.word-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s cubic-bezier(0.23,1,0.32,1);
+}
+
+.word-count {
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* USER ROWS */
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.user-row:last-child { border-bottom: none; }
+
+.user-avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 14px; font-weight: 700; }
+.user-msgs { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.user-bar-wrap { flex: 1.5; }
+.user-track { height: 5px; background: var(--bg2); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.user-fill { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(0.23,1,0.32,1); }
+
+.user-pct {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* SENTIMENT */
+.sent-bar-wrap {
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  margin: 16px 0;
+  gap: 2px;
+}
+
+.sent-seg {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 1s ease;
+}
+
+.sent-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sent-legend-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.sent-legend-count {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.sent-legend-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* MOOD CARD */
+.mood-display {
+  text-align: center;
+  padding: 24px 20px;
+}
+
+.mood-emoji {
+  font-size: 4rem;
+  margin-bottom: 12px;
+  display: block;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-8px); }
+}
+
+.mood-label {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.mood-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* SPAM */
+.spam-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+  align-items: flex-start;
+}
+
+.spam-item:hover { border-color: var(--red); }
+.spam-item:last-child { margin-bottom: 0; }
+
+.spam-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.spam-content { flex: 1; }
+.spam-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+.spam-meta { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+.no-spam {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.no-spam-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+/* TIME CHART */
+.time-chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100px;
+  padding: 0 4px;
+}
+
+.time-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+}
+
+.time-bar-outer {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.time-bar-inner {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  transition: height 1s cubic-bezier(0.23,1,0.32,1);
+  min-height: 4px;
+  position: relative;
+}
+
+.time-bar-inner.peak {
+  box-shadow: 0 0 16px rgba(0,245,160,0.5);
+}
+
+.time-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+/* MESSAGES TABLE */
+.msg-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.msg-table th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.msg-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.msg-table tr:last-child td { border-bottom: none; }
+.msg-table tr:hover td { background: var(--bg2); }
+
+.msg-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.msg-user { font-weight: 700; white-space: nowrap; }
+.msg-text { color: var(--text); line-height: 1.5; }
+.msg-sent { text-align: center; }
+
+.sent-icon { font-size: 14px; }
+
+/* SECTION LABEL */
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* LOADING */
+.loading {
+  display: none;
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+}
+
+.loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 900px) {
+  .two-col, .three-col { grid-template-columns: 1fr; }
+  .input-body { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  nav { padding: 0 20px; }
+  .main { padding: 0 20px 40px; }
+  .hero { padding: 40px 20px 30px; }
+  .nav-pills { display: none; }
+}
+
+/* GLOW effects */
+.glow-green { box-shadow: 0 0 40px rgba(56,189,248,0.08); }
+.glow-cyan  { box-shadow: 0 0 40px rgba(6,182,212,0.08); }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">💬</div>
+    Chat<span>DSA</span>
+  </div>
+  <div class="nav-pills">
+    <button class="nav-pill active">Analyzer</button>
+    <button class="nav-pill">DSA Concepts</button>
+    <button class="nav-pill">About</button>
+  </div>
+  <div class="nav-right">
+    <span class="version-badge">v1.0.0</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    DSA Powered Analytics Engine
+  </div>
+  <h1>Analyze Any Chat<br>with <span class="accent">Pure DSA</span></h1>
+  <p>Paste your chat log and get instant insights — word frequency, user activity, sentiment, spam detection & peak time analysis.</p>
+
+  <div class="dsa-tags">
+    <span class="dsa-tag" style="color:#38bdf8;border-color:rgba(56,189,248,0.3);background:rgba(56,189,248,0.06)">unordered_map</span>
+    <span class="dsa-tag" style="color:#06b6d4;border-color:rgba(6,182,212,0.3);background:rgba(6,182,212,0.06)">unordered_set</span>
+    <span class="dsa-tag" style="color:#0ea5e9;border-color:rgba(14,165,233,0.3);background:rgba(14,165,233,0.06)">vector&lt;pair&gt;</span>
+    <span class="dsa-tag" style="color:#7dd3fc;border-color:rgba(125,211,252,0.3);background:rgba(125,211,252,0.06)">sort() O(n log n)</span>
+    <span class="dsa-tag" style="color:#f87171;border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.06)">string::find()</span>
+    <span class="dsa-tag" style="color:#93c5fd;border-color:rgba(147,197,253,0.3);background:rgba(147,197,253,0.06)">map BST</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- INPUT CARD -->
+  <div class="input-section glow-green">
+    <div class="input-header">
+      <div class="input-header-left">
+        <div class="header-icon" style="background:rgba(0,245,160,0.1)">📝</div>
+        <div>
+          <div class="input-title">Chat Log Input</div>
+          <div class="input-sub">Format: [HH:MM] Username: message</div>
+        </div>
+      </div>
+      <div class="input-actions">
+        <span class="counter-badge" id="msgCounter">0 messages</span>
+        <button class="btn btn-ghost" onclick="loadSample()">⚡ Load Sample</button>
+        <button class="btn btn-danger" onclick="clearAll()">✕ Clear</button>
+        <button class="btn btn-primary" onclick="runAnalysis()">▶ Analyze Now</button>
+      </div>
+    </div>
+
+    <div class="input-body">
+      <div class="textarea-wrap">
+        <textarea id="chatInput" placeholder="Paste your chat messages here...
+
+[10:01] Alice: Hello everyone!
+[10:02] Bob: This project is amazing
+[10:03] Charlie: buy now buy now buy now
+[10:04] Alice: I love working on this
+[10:05] Bob: Great work everyone!"></textarea>
+      </div>
+
+      <div class="format-guide">
+        <div class="guide-title">Format Guide</div>
+        <div class="guide-format">
+          [HH:MM] User: text
+        </div>
+
+        <div>
+          <div class="guide-title" style="margin-bottom:8px">Example</div>
+          <div class="guide-example">
+            <span style="color:var(--muted)">[10:01]</span> <span style="color:var(--cyan)">Alice:</span> Hello!<br>
+            <span style="color:var(--muted)">[10:02]</span> <span style="color:var(--green)">Bob:</span> Amazing work<br>
+            <span style="color:var(--muted)">[10:03]</span> <span style="color:var(--orange)">Charlie:</span> buy now
+          </div>
+        </div>
+
+        <div>
+          <div class="guide-title" style="margin-bottom:8px">What We Detect</div>
+          <div class="features-list">
+            <div class="feature-item"><div class="feature-dot" style="background:var(--green)"></div>Top words (HashMap)</div>
+            <div class="feature-item"><div class="feature-dot" style="background:var(--cyan)"></div>Active users (HashMap)</div>
+            <div class="feature-item"><div class="feature-dot" style="background:var(--purple)"></div>Sentiment (Set lookup)</div>
+            <div class="feature-item"><div class="feature-dot" style="background:var(--red)"></div>Spam (String match)</div>
+            <div class="feature-item"><div class="feature-dot" style="background:var(--yellow)"></div>Peak time (BST Map)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div style="font-size:14px;font-weight:600">Running DSA Engine...</div>
+    <div style="font-size:12px;margin-top:6px">Building HashMaps, sorting vectors, scanning sets...</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsSection">
+
+    <!-- STAT CARDS -->
+    <div class="section-label">Overview Analytics</div>
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <!-- ROW 1: Word Freq + User Activity -->
+    <div class="two-col">
+      <!-- WORD FREQUENCY -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            📊 Word Frequency
+            <span class="panel-tag" style="background:rgba(0,245,160,0.1);color:var(--green)">unordered_map + sort</span>
+          </div>
+        </div>
+        <div class="panel-body" id="wordFreqPanel"></div>
+      </div>
+
+      <!-- USER ACTIVITY -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            👥 User Activity
+            <span class="panel-tag" style="background:rgba(0,212,255,0.1);color:var(--cyan)">unordered_map</span>
+          </div>
+        </div>
+        <div class="panel-body" id="userActivityPanel"></div>
+      </div>
+    </div>
+
+    <!-- ROW 2: Sentiment + Spam + Time -->
+    <div class="three-col">
+      <!-- SENTIMENT -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            🧠 Sentiment
+            <span class="panel-tag" style="background:rgba(167,139,250,0.1);color:var(--purple)">unordered_set</span>
+          </div>
+        </div>
+        <div class="panel-body" id="sentimentPanel"></div>
+      </div>
+
+      <!-- SPAM -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            🚨 Spam Detection
+            <span class="panel-tag" style="background:rgba(255,71,87,0.1);color:var(--red)">string::find()</span>
+          </div>
+        </div>
+        <div class="panel-body" id="spamPanel"></div>
+      </div>
+
+      <!-- PEAK TIME -->
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">
+            ⏰ Peak Time
+            <span class="panel-tag" style="background:rgba(255,209,102,0.1);color:var(--yellow)">std::map BST</span>
+          </div>
+        </div>
+        <div class="panel-body" id="peakTimePanel"></div>
+      </div>
+    </div>
+
+    <!-- ROW 3: Messages Table -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">💬 All Parsed Messages</div>
+        <span id="msgTableCount" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="msg-table" id="messagesTable"></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DSA ENGINE — Pure JavaScript
+// Mirrors C++ logic exactly
+// ══════════════════════════════════════════
+
+const STOPWORDS = new Set([
+  'a','an','the','is','it','in','on','at','to','of','and','or','but','for',
+  'with','this','that','was','are','be','been','have','has','had','do','did',
+  'will','would','could','should','i','you','he','she','we','they','my','your',
+  'his','her','our','their','its','me','him','us','them','what','which','who',
+  'how','when','where','why','not','no','so','if','as','by','from','up','out',
+  'im','ive','just','very','can','get','got','let','hey','okay','yes','yeah'
+]);
+
+const POSITIVE_WORDS = new Set([
+  'amazing','great','awesome','love','happy','excellent','good','best','nice',
+  'fantastic','wonderful','super','brilliant','perfect','beautiful','glad',
+  'thanks','thank','cool','wow','impressive','incredible','outstanding','helpful'
+]);
+
+const NEGATIVE_WORDS = new Set([
+  'bad','hate','awful','terrible','horrible','worst','ugly','sad','angry',
+  'disgusting','disappointing','sucks','boring','wrong','fail','failed',
+  'useless','stupid','dumb','rubbish','trash','spam','stop','annoying'
+]);
+
+const SPAM_PATTERNS = [
+  'buy now','click here','free money','limited offer',
+  'act now','win now','subscribe now','promo code','earn money'
+];
+
+const PALETTE = [
+  '#38bdf8','#06b6d4','#0ea5e9','#7dd3fc',
+  '#93c5fd','#67e8f9','#f87171','#34d399'
+];
+
+// ── PARSE ──────────────────────────────────
+function parseMessages(raw) {
+  return raw.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    if (line[0] !== '[') return null;
+    const cb = line.indexOf(']');
+    if (cb < 0) return null;
+    const time = line.slice(1, cb).trim();
+    const rest = line.slice(cb+1).trim();
+    const ci = rest.indexOf(':');
+    if (ci < 0) return null;
+    const user = rest.slice(0, ci).trim();
+    const text = rest.slice(ci+1).trim();
+    if (!user || !text) return null;
+    return { time, user, text };
+  }).filter(Boolean);
+}
+
+// ── WORD FREQUENCY ─ unordered_map + sort ─
+function wordFrequency(messages) {
+  const freq = {};
+  for (const msg of messages) {
+    const words = msg.text.toLowerCase().match(/[a-z]+/g) || [];
+    for (const w of words)
+      if (w.length > 2 && !STOPWORDS.has(w))
+        freq[w] = (freq[w]||0) + 1;
+  }
+  return Object.entries(freq).sort((a,b) => b[1]-a[1]);
+}
+
+// ── USER ACTIVITY ─ unordered_map ──────────
+function userActivity(messages) {
+  const map = {};
+  for (const msg of messages) map[msg.user] = (map[msg.user]||0)+1;
+  return Object.entries(map).sort((a,b) => b[1]-a[1]);
+}
+
+// ── SENTIMENT ─ unordered_set ──────────────
+function sentiment(messages) {
+  let pos=0, neg=0, neu=0;
+  const perMsg = messages.map(msg => {
+    const words = msg.text.toLowerCase().match(/[a-z]+/g)||[];
+    let p=0, n=0;
+    for (const w of words) {
+      if (POSITIVE_WORDS.has(w)) p++;
+      if (NEGATIVE_WORDS.has(w)) n++;
+    }
+    const s = p>n?'pos':n>p?'neg':'neu';
+    if (s==='pos') pos++; else if (s==='neg') neg++; else neu++;
+    return s;
+  });
+  return { pos, neg, neu, perMsg };
+}
+
+// ── SPAM ─ string::find() ──────────────────
+function detectSpam(messages) {
+  return messages.map(msg => {
+    const lower = msg.text.toLowerCase();
+    for (const p of SPAM_PATTERNS)
+      if (lower.includes(p)) return { ...msg, reason: 'SPAM PATTERN' };
+    const words = lower.match(/[a-z]+/g)||[];
+    if (words.length > 3) {
+      const wc = {};
+      for (const w of words) wc[w]=(wc[w]||0)+1;
+      const maxRep = Math.max(...Object.values(wc));
+      if (maxRep/words.length > 0.4) return { ...msg, reason: 'FLOOD' };
+    }
+    return null;
+  }).filter(Boolean);
+}
+
+// ── PEAK TIME ─ ordered map ────────────────
+function peakTime(messages) {
+  const map = {};
+  for (const msg of messages) {
+    const h = msg.time.split(':')[0];
+    map[h] = (map[h]||0)+1;
+  }
+  const sorted = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]));
+  const peak = sorted.length ? sorted.reduce((b,c)=>c[1]>b[1]?c:b)[0] : null;
+  return { sorted, peak };
+}
+
+// ══ RENDER ════════════════════════════════
+const MOOD = {
+  pos: { emoji:'😊', label:'Positive Vibes', color: 'var(--green)' },
+  neg: { emoji:'😠', label:'Negative Mood',  color: 'var(--red)' },
+  neu: { emoji:'😐', label:'Neutral Tone',   color: 'var(--yellow)' }
+};
+
+function runAnalysis() {
+  const raw = document.getElementById('chatInput').value;
+  const messages = parseMessages(raw);
+
+  if (!messages.length) {
+    alert('❌ No valid messages found!\n\nUse format:\n[10:01] Alice: Hello everyone!');
+    return;
+  }
+
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('resultsSection').style.display = 'none';
+
+  setTimeout(() => {
+    const words   = wordFrequency(messages);
+    const users   = userActivity(messages);
+    const sent    = sentiment(messages);
+    const spam    = detectSpam(messages);
+    const { sorted: timeSlots, peak } = peakTime(messages);
+
+    renderStats(messages, words, users, sent, spam);
+    renderWordFreq(words);
+    renderUsers(users, messages.length);
+    renderSentiment(sent);
+    renderSpam(spam);
+    renderPeakTime(timeSlots, peak);
+    renderMessages(messages, sent.perMsg);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 600);
+}
+
+function renderStats(messages, words, users, sent, spam) {
+  const total = messages.length;
+  const mood = sent.pos >= sent.neg && sent.pos >= sent.neu ? 'pos' : sent.neg >= sent.neu ? 'neg' : 'neu';
+  const cards = [
+    { emoji:'💬', label:'Total Messages', value: total, sub: 'messages parsed', c: 'var(--green)' },
+    { emoji:'👑', label:'Most Active', value: users[0]?.[0]||'—', sub: `${users[0]?.[1]||0} messages`, c: 'var(--cyan)', small: true },
+    { emoji:'🔤', label:'Top Word', value: `"${words[0]?.[0]||'—'}"`, sub: `used ${words[0]?.[1]||0}×`, c: 'var(--orange)', small: true },
+    { emoji:'👥', label:'Unique Users', value: users.length, sub: 'participants', c: 'var(--purple)' },
+    { emoji:'🚨', label:'Spam Flagged', value: spam.length, sub: 'messages', c: 'var(--red)' },
+    { emoji: MOOD[mood].emoji, label:'Overall Mood', value: MOOD[mood].label, sub: `${sent.pos}+ ${sent.neg}- ${sent.neu}~`, c: MOOD[mood].color, small: true },
+  ];
+
+  document.getElementById('statsGrid').innerHTML = cards.map(c => `
+    <div class="stat-card" style="--c:${c.c}">
+      <div class="stat-emoji">${c.emoji}</div>
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value" style="${c.small?'font-size:1.1rem;padding-top:4px':''}">${c.value}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+function renderWordFreq(words) {
+  const top = words.slice(0, 10);
+  const max = top[0]?.[1]||1;
+  document.getElementById('wordFreqPanel').innerHTML = top.length
+    ? top.map(([w,c],i) => `
+      <div class="word-bar-row">
+        <div class="word-rank">${i+1}</div>
+        <div class="word-name" style="color:${PALETTE[i%8]}">${w}</div>
+        <div class="word-track">
+          <div class="word-fill" style="width:${(c/max*100).toFixed(1)}%;background:${PALETTE[i%8]}"></div>
+        </div>
+        <div class="word-count">${c}×</div>
+      </div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No significant words found</div>';
+}
+
+function renderUsers(users, total) {
+  const max = users[0]?.[1]||1;
+  document.getElementById('userActivityPanel').innerHTML = users.map(([u,c],i) => `
+    <div class="user-row">
+      <div class="user-avatar" style="background:${PALETTE[i%8]}18;color:${PALETTE[i%8]};border:1.5px solid ${PALETTE[i%8]}44">
+        ${u[0].toUpperCase()}
+      </div>
+      <div class="user-info">
+        <div class="user-name" style="color:${PALETTE[i%8]}">${u}</div>
+        <div class="user-msgs">${c} message${c!==1?'s':''}</div>
+        <div class="user-track">
+          <div class="user-fill" style="width:${(c/max*100).toFixed(1)}%;background:${PALETTE[i%8]}"></div>
+        </div>
+      </div>
+      <div class="user-pct" style="color:${PALETTE[i%8]}">${(c/total*100).toFixed(0)}%</div>
+    </div>`).join('');
+}
+
+function renderSentiment(sent) {
+  const total = sent.pos+sent.neg+sent.neu||1;
+  const posW = (sent.pos/total*100).toFixed(0);
+  const negW = (sent.neg/total*100).toFixed(0);
+  const neuW = (100-+posW-+negW);
+  const mood = sent.pos>=sent.neg&&sent.pos>=sent.neu?'pos':sent.neg>=sent.neu?'neg':'neu';
+
+  document.getElementById('sentimentPanel').innerHTML = `
+    <div class="mood-display">
+      <span class="mood-emoji">${MOOD[mood].emoji}</span>
+      <div class="mood-label" style="color:${MOOD[mood].color}">${MOOD[mood].label}</div>
+      <div class="mood-sub">Based on ${total} messages</div>
+    </div>
+    <div class="sent-bar-wrap">
+      <div class="sent-seg" style="width:${posW}%;background:var(--green)"></div>
+      <div class="sent-seg" style="width:${neuW}%;background:var(--muted2)"></div>
+      <div class="sent-seg" style="width:${negW}%;background:var(--red)"></div>
+    </div>
+    <div class="sent-legend">
+      <div class="sent-legend-item">
+        <div class="sent-legend-count" style="color:var(--green)">${sent.pos}</div>
+        <div class="sent-legend-label">😊 Positive</div>
+      </div>
+      <div class="sent-legend-item">
+        <div class="sent-legend-count" style="color:var(--muted)">${sent.neu}</div>
+        <div class="sent-legend-label">😐 Neutral</div>
+      </div>
+      <div class="sent-legend-item">
+        <div class="sent-legend-count" style="color:var(--red)">${sent.neg}</div>
+        <div class="sent-legend-label">😠 Negative</div>
+      </div>
+    </div>`;
+}
+
+function renderSpam(spam) {
+  document.getElementById('spamPanel').innerHTML = spam.length
+    ? spam.map(s => `
+      <div class="spam-item">
+        <span class="spam-badge" style="${s.reason==='FLOOD'
+          ?'background:rgba(255,209,102,0.15);color:var(--yellow);border:1px solid rgba(255,209,102,0.3)'
+          :'background:rgba(255,71,87,0.15);color:var(--red);border:1px solid rgba(255,71,87,0.3)'
+        }">${s.reason}</span>
+        <div class="spam-content">
+          <div class="spam-text">${esc(s.text)}</div>
+          <div class="spam-meta">[${s.time}] ${esc(s.user)}</div>
+        </div>
+      </div>`).join('')
+    : `<div class="no-spam"><div class="no-spam-icon">✅</div>No spam detected!<br><span style="font-size:12px;color:var(--muted);font-weight:400">All messages look clean</span></div>`;
+}
+
+function renderPeakTime(timeSlots, peak) {
+  if (!timeSlots.length) {
+    document.getElementById('peakTimePanel').innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">No time data</div>';
+    return;
+  }
+  const max = Math.max(...timeSlots.map(([,v])=>v));
+  const cols = timeSlots.map(([h,c]) => {
+    const isPeak = h === peak;
+    const pct = Math.round(c/max*100);
+    return `<div class="time-col">
+      <div class="time-bar-outer">
+        <div class="time-bar-inner${isPeak?' peak':''}"
+          style="height:${pct}%;background:${isPeak?'var(--green)':'var(--cyan)'};opacity:${isPeak?1:0.5}">
+        </div>
+      </div>
+      <div class="time-label">${h}h${isPeak?'⬆':''}  </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('peakTimePanel').innerHTML = `
+    <div class="time-chart-wrap">${cols}</div>
+    ${peak ? `<div style="text-align:center;margin-top:14px;font-size:12px;color:var(--green);font-weight:600">⚡ Peak Hour: ${peak}:00</div>` : ''}`;
+}
+
+function renderMessages(messages, perMsgSent) {
+  const sentEmoji = { pos:'😊', neg:'😠', neu:'😐' };
+  document.getElementById('msgTableCount').textContent = `${messages.length} messages`;
+  document.getElementById('messagesTable').innerHTML = `
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Time</th>
+        <th>User</th>
+        <th>Message</th>
+        <th>Mood</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${messages.map((m,i) => {
+        const uIdx = ['Alice','Bob','Charlie','Dave','Eve'].indexOf(m.user);
+        const color = PALETTE[Math.abs(m.user.charCodeAt(0)) % 8];
+        return `<tr>
+          <td style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:11px">${i+1}</td>
+          <td class="msg-time">${m.time}</td>
+          <td class="msg-user" style="color:${color}">${esc(m.user)}</td>
+          <td class="msg-text">${esc(m.text)}</td>
+          <td class="msg-sent"><span title="${perMsgSent[i]}">${sentEmoji[perMsgSent[i]]||'😐'}</span></td>
+        </tr>`;
+      }).join('')}
+    </tbody>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Live counter ───────────────────────────
+document.getElementById('chatInput').addEventListener('input', function() {
+  const n = this.value.split('\n').filter(l => /^\[/.test(l.trim())).length;
+  document.getElementById('msgCounter').textContent = n + ' messages';
+});
+
+// ── Sample data ────────────────────────────
+function loadSample() {
+  document.getElementById('chatInput').value =
+`[10:01] Alice: Hello everyone!
+[10:02] Bob: Hey Alice how are you doing today
+[10:03] Alice: This project is amazing wow I love it
+[10:04] Charlie: buy now buy now buy now
+[10:04] Bob: what is going on here
+[10:05] Alice: I love working on this so much it is fantastic
+[10:06] Charlie: click here click here click here
+[10:07] Bob: Great work on this analysis tool it is excellent
+[10:08] Alice: Thanks everyone this is fantastic great job
+[10:09] Bob: The DSA concepts are really interesting and helpful
+[10:09] Alice: Totally agree this is excellent outstanding work
+[10:10] Dave: Hello Bob and Alice great to join this amazing project
+[10:10] Bob: Welcome Dave this is awesome glad you joined
+[10:11] Alice: Amazing to have everyone here today wonderful team
+[10:11] Dave: This project is really impressive outstanding work
+[10:12] Charlie: free money free money subscribe now
+[10:12] Bob: Stop it Charlie that looks like spam it is bad
+[10:13] Alice: I hate spam messages they are terrible and awful
+[10:14] Dave: Terrible behavior from Charlie honestly rubbish`;
+  document.getElementById('msgCounter').textContent = '19 messages';
+}
+
+function clearAll() {
+  document.getElementById('chatInput').value = '';
+  document.getElementById('msgCounter').textContent = '0 messages';
+  document.getElementById('resultsSection').style.display = 'none';
+}
+</script>
+</body>
+</html>
