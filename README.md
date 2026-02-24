@@ -2,9 +2,6 @@ ChatDSA — AI Chat Conversation Analyzer
    A DSA Project | C++ | Data Structures & Algorithms
 =======================================================
 
-STUDENT PROJECT — For Faculty Presentation
--------------------------------------------
-
 PROJECT OVERVIEW
 ----------------
 ChatDSA is a chat conversation analyzer built using
